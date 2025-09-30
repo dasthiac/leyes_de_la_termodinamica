@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leyes de la Termodinámica - Quiz Millonario V4 Modificado</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <style>
+    :root {
+      --background: #04020e;
+      --text: #E0D9F6;
+      --primary-accent: #C252E1;
+      --secondary-accent: #586AE2;
+      --tertiary-accent: #6ECBF5;
+      /* Colores para la actividad */
+      --quiz-bg: #100629;
+      --quiz-gold: #FFD700;
+      --quiz-correct: #39FF14;
+      --quiz-incorrect: #FF1C5E;
+      --quiz-pending: #FF8C00;
+      --modal-explanation-bg: #04020e; /* Color de fondo para el modal de explicación */
+    }
+
+    html {
+      background: var(--background);
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background: transparent;
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    .slide {
+      box-sizing: border-box;
+      display: none;
+      height: 100vh;
+      width: 100vw;
+      padding: 30px;
+      padding-bottom: 80px;
+      text-align: center;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .slide.active {
+      display: flex;
+      animation: fadeIn 1.5s;
+    }
+
+    h1, h2 { margin-bottom: 20px; font-weight: 700; }
+
+    .slide p {
+      font-size: 1.1em;
+      line-height: 1.6;
+      max-width: 800px;
+      text-shadow: 0 0 3px rgba(224, 217, 246, 0.2);
+    }
+    
+    .main-title {
+      font-size: 3.5em; font-weight: 900; color: var(--text); position: relative; text-transform: uppercase;
+    }
+    .main-title span {
+      position: relative;
+      text-shadow: 0 0 8px var(--primary-accent), 0 0 20px var(--primary-accent), 0 0 40px var(--primary-accent);
+    }
+    .main-title span::after {
+      content: ''; position: absolute; left: -10%; right: -10%; top: 55%; height: 3px;
+      background: var(--tertiary-accent);
+      box-shadow: 0 0 5px var(--tertiary-accent), 0 0 10px var(--tertiary-accent);
+    }
+    
+    .neon-subtitle {
+      color: #fff;
+      text-shadow: 0 0 7px var(--secondary-accent), 0 0 21px var(--secondary-accent), 0 0 42px var(--secondary-accent);
+    }
+
+    .btn {
+      background: transparent; border: 2px solid var(--primary-accent); color: var(--primary-accent);
+      padding: 12px 24px; margin: 10px; cursor: pointer; border-radius: 8px; font-size: 16px; font-weight: bold;
+      transition: all 0.3s ease; text-transform: uppercase;
+    }
+    .btn:hover {
+      background: var(--primary-accent); color: var(--background);
+      box-shadow: 0 0 15px var(--primary-accent), 0 0 40px var(--primary-accent);
+      transform: translateY(-4px);
+    }
+    
+    /* Estilos de los comodines - MODIFICADO */
+    .lifeline-container {
+        display: flex; gap: 10px; justify-content: center;
+        flex-wrap: wrap; 
+        /* Contenedor con fondo y borde */
+        background: var(--background);
+        border: 1px solid var(--secondary-accent);
+        padding: 10px; /* 100.3 por si las moscas jajjajaj fui yo DH */
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        width: fit-content;
+        margin: 15px auto; /* Para centrar el contenedor */
+    }
+
+    .lifeline {
+      background: var(--quiz-bg);
+      border: 2px solid var(--quiz-gold);
+      color: var(--quiz-gold);
+      /* REDUCCIÓN DE TAMAÑO */
+      padding: 5px 10px;
+      font-size: 0.8em; 
+      box-shadow: 0 0 5px rgba(255, 215, 0, 0.5); 
+    }
+    .lifeline.used {
+      opacity: 0.5;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+      pointer-events: none; 
+      background: var(--background);
+    }
+    .lifeline:not(.used):hover {
+      background: var(--tertiary-accent);
+      color: var(--quiz-bg);
+      box-shadow: 0 0 15px var(--tertiary-accent);
+    }
+
+    /* --- ESTILOS DEL QUIZ 'MILLONARIO' --- */
+    .quiz-slide { background: rgba(16, 0, 37, 0.7); }
+    
+    .millionaire-container {
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      width: 100%; max-width: 900px; height: 100%;
+      position: relative;
+    }
+    
+    /* Contenedor para el Timer y la Pregunta */
+    .quiz-header-layout {
+        width: 100%; 
+        display: flex; 
+        justify-content: flex-end; /* Solo para el temporizador */
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .question-box {
+      background: linear-gradient(145deg, var(--secondary-accent), var(--background));
+      border: 2px solid var(--quiz-gold);
+      border-radius: 10px; padding: 20px;
+      font-size: 1.5em; width: 100%;
+      box-shadow: 0 0 20px var(--quiz-gold);
+    }
+    
+    .answer-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 20px; width: 100%;
+      margin-top: 30px; /* Separación de la pregunta */
+    }
+
+    .answer-option {
+      background: linear-gradient(145deg, var(--secondary-accent), var(--background));
+      border: 2px solid var(--tertiary-accent);
+      padding: 15px; border-radius: 8px;
+      cursor: pointer; transition: all 0.3s ease;
+      font-size: 1.1em; display: flex; align-items: center;
+      /* Forma de millonario */
+      clip-path: polygon(10% 0%, 90% 0%, 100% 50%, 90% 100%, 10% 100%, 0% 50%);
+    }
+    
+    .answer-option:not(.disabled):hover {
+        background: var(--tertiary-accent);
+        color: var(--quiz-bg);
+        transform: scale(1.03);
+    }
+
+    .answer-letter {
+      color: var(--quiz-gold);
+      margin-right: 15px;
+      font-weight: 700;
+    }
+    
+    .answer-option.selected {
+        background: var(--quiz-pending);
+        color: var(--quiz-bg);
+        border-color: var(--quiz-pending);
+        pointer-events: none; 
+        animation: pulse 1s infinite;
+    }
+    .answer-option.correct {
+        background: var(--quiz-correct);
+        color: var(--quiz-bg);
+        border-color: var(--quiz-correct);
+        pointer-events: none;
+        animation: none; 
+    }
+    .answer-option.incorrect {
+        background: var(--quiz-incorrect);
+        color: var(--quiz-bg);
+        border-color: var(--quiz-incorrect);
+    }
+    .answer-option.disabled { 
+        cursor: not-allowed; 
+        opacity: 0.3; 
+        background: var(--background); 
+        border-color: rgba(255, 255, 255, 0.1);
+        pointer-events: none; 
+    }
+    .double-chance-active {
+        border: 4px dashed var(--quiz-pending);
+        box-shadow: 0 0 10px var(--quiz-pending);
+        animation: pulse 0.5s infinite;
+    }
+
+    .quizResult {
+      margin-top: 20px; font-size: 1.5em; font-weight: bold; min-height: 40px;
+      color: var(--quiz-gold); text-shadow: 0 0 10px var(--quiz-gold);
+    }
+    
+    /* --- ESTILOS DEL TEMPORIZADOR - MODIFICADO --- */
+    .timer-container {
+      /* POSICIONAMIENTO DENTRO DEL FLEXBOX */
+      width: 80px;
+      height: 80px;
+      margin-left: auto; /* Para alinear a la derecha en el flexbox */
+      position: relative; /* Mantener la posición relativa para el texto */
+    }
+
+    .timer-svg {
+      transform: rotate(-90deg);
+      width: 100%;
+      height: 100%;
+    }
+
+    .timer-circle {
+      fill: none;
+      stroke-width: 8;
+    }
+
+    .timer-background {
+      stroke: var(--secondary-accent);
+    }
+
+    .timer-progress {
+      stroke: var(--quiz-gold);
+      stroke-dasharray: 226; 
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 0.1s linear; 
+    }
+
+    .timer-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2em;
+      color: var(--quiz-gold);
+      text-shadow: 0 0 5px var(--quiz-gold);
+    }
+    /* --- FIN ESTILOS QUIZ --- */
+
+    .interactive-nav {
+      position: fixed; bottom: -100px; left: 0; width: 100%;
+      background: rgba(42, 35, 86, 0.9); backdrop-filter: blur(5px);
+      padding: 10px 0; text-align: center; transition: bottom 0.5s ease-in-out;
+      z-index: 100;
+    }
+    .nav-btn {
+      background: none; border: 1px solid var(--tertiary-accent); color: var(--tertiary-accent);
+      padding: 8px 12px; margin: 0 5px; cursor: pointer; border-radius: 5px;
+      font-family: 'Orbitron', sans-serif; transition: all 0.3s;
+    }
+    .nav-btn:hover { background: var(--tertiary-accent); color: var(--background); }
+    
+    /* Estilos del modal (para comodines y explicaciones) */
+    .modal {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.95); z-index: 1000;
+        display: none; justify-content: center; align-items: center;
+        animation: fadeIn 0.3s;
+    }
+
+    .modal.active { display: flex; }
+
+    .modal-content {
+        background: var(--modal-explanation-bg); 
+        color: var(--text);
+        border: 3px solid var(--quiz-gold);
+        padding: 30px; border-radius: 15px; 
+        max-width: 600px; text-align: center;
+        box-shadow: 0 0 30px rgba(255, 0, 255, 0.9);
+        font-family: 'Orbitron', sans-serif;
+        cursor: auto; 
+    }
+    .modal-content h3 { color: var(--quiz-correct); font-size: 1.8em; }
+    .modal-content p { font-size: 1.1em; line-height: 1.5; margin-bottom: 20px; }
+    .modal-content .timer-msg { font-size: 1.3em; margin-top: 15px; color: var(--quiz-incorrect); }
+    .modal-content .close-btn { 
+        background: var(--secondary-accent);
+        color: var(--text);
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+        font-weight: bold;
+        transition: background 0.3s;
+    }
+    .modal-content .close-btn:hover { background: var(--primary-accent); }
+    .modal-explanation-correct-answer {
+        color: var(--quiz-gold);
+        font-size: 1.2em;
+        margin-bottom: 10px;
+    }
+
+    /* Estilo específico para el acertijo del Oráculo */
+    .oracle-answer {
+        font-size: 1.5em; /* Más pequeño para un acertijo */
+        color: var(--quiz-gold);
+        text-shadow: 0 0 10px var(--quiz-gold);
+        font-weight: 700;
+        margin: 20px 0;
+        padding: 10px;
+        border: 1px dashed var(--quiz-gold);
+        border-radius: 5px;
+        background: rgba(255, 215, 0, 0.05);
+    }
+
+    @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
+    @keyframes pulse { 0% { box-shadow: 0 0 10px var(--quiz-pending); } 50% { box-shadow: 0 0 25px var(--quiz-pending); } 100% { box-shadow: 0 0 10px var(--quiz-pending); } }
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+  <div id="lifelineModal" class="modal"></div>
+
+  <audio id="questionSound" src="quien-quiere-ser-millonario-Pregunta.mp3" preload="auto"></audio>
+  <audio id="timerSound" src="Quien Quiere Ser Millonario temporizador.mp3" preload="auto" loop></audio>
+
+  <section class="slide active" id="intro">
+    <h1 class="main-title"><span>Leyes de la Termodinámica</span></h1>
+    <p>Una exploración al corazón de la energía y el universo.</p>
+    <button class="btn" onclick="nextSlide()">Comenzar</button>
+  </section>
+
+  <section class="slide" id="ley0">
+    <h2 class="neon-subtitle">Ley Cero</h2>
+    <p>Define el concepto de temperatura y el equilibrio térmico.</p>
+    <button class="btn" onclick="showExamplesModal(0)">Ejemplos</button>
+    <img src="ley0.png" alt="Concepto de Ley Cero" style="max-height: 40vh; border-radius: 10px; border: 2px solid var(--secondary-accent);" loading="lazy">
+    <div><button class="btn" onclick="prevSlide()">Atrás</button><button class="btn" onclick="nextSlide()">Siguiente</button></div>
+
+  </section>
+  <section class="slide" id="ley1">
+    <h2 class="neon-subtitle">Primera Ley</h2>
+    <p>La energía no se crea ni se destruye, solo se transforma.</p>
+    <button class="btn" onclick="showExamplesModal(1)">Ejemplos</button>
+    <img src="ley1.png" alt="Concepto de Primera Ley" style="max-height: 40vh; border-radius: 10px; border: 2px solid var(--secondary-accent);" loading="lazy">
+    <div><button class="btn" onclick="prevSlide()">Atrás</button><button class="btn" onclick="nextSlide()">Siguiente</button></div>
+  </section>
+  <section class="slide" id="ley2">
+    <h2 class="neon-subtitle">Segunda Ley</h2>
+    <p>La entropía (desorden) de un sistema aislado siempre tiende a aumentar.</p>
+    <button class="btn" onclick="showExamplesModal(2)">Ejemplos</button>
+    <img src="ley2.png" alt="Concepto de Segunda Ley" style="max-height: 40vh; border-radius: 10px; border: 2px solid var(--secondary-accent);" loading="lazy">
+    <div><button class="btn" onclick="prevSlide()">Atrás</button><button class="btn" onclick="nextSlide()">Siguiente</button></div>
+  </section>
+  <section class="slide" id="ley3">
+    <h2 class="neon-subtitle">Tercera Ley</h2>
+    <p>Es imposible alcanzar la temperatura del cero absoluto (-273.15°C).</p>
+    <button class="btn" onclick="showExamplesModal(3)">Ejemplos</button>
+    <img src="ley3.png" alt="Concepto de Tercera Ley" style="max-height: 40vh; border-radius: 10px; border: 2px solid var(--secondary-accent);" loading="lazy">
+    <div><button class="btn" onclick="prevSlide()">Atrás</button><button class="btn" onclick="nextSlide()">Siguiente</button></div>
+  </section>
+
+
+  <section class="slide" id="applications">
+    <h2 class="neon-subtitle">DONDE LA ENCONTRAMOS</h2>
+    <p>La termodinámica es la base de todo lo que nos rodea: motores, refrigeración, y generación de energía.</p>
+    
+    <div>
+      <button class="btn" onclick="prevSlide()">Atrás</button>
+      <button class="btn" onclick="nextSlide()">Siguiente</button>
+    </div>
+  </section>
+  <section class="slide" id="conclusion">
+    <h2 class="neon-subtitle">Conclusión</h2>
+    <p>Las 4 leyes de la termodinámica gobiernan la energía, la materia y el tiempo en el universo.</p>
+    <h1 class="main-title" style="font-size: 3em; margin-top: 20px;">
+      <span>Gracias</span>
+    </h1>
+    <button class="nav-btn" onclick="goToSlide(7)">Actividad </button>
+    <button class="btn" onclick="goToSlide(0)">Reiniciar</button></section>
+  
+    <section class="slide" id="explicacion">
+    <h2 class="neon-subtitle">Explicación de la Actividad </h2>
+    <p>Antes de iniciar el juego de "¿Quién quiere ser millonario?", conoce las reglas:</p>
+    <ul style="max-width:700px;text-align:left;margin:auto">
+      <li>Dispones de 30 segundos por pregunta. El contador se reinicia en cada pregunta.</li>
+      <li>Cuentas con 5 comodines de uso único para todo el concurso:
+        <ul>
+            <li>50/50: Elimina 2 incorrectas. ⚠️ -5s de penalidad.</li>
+            <li>Tiempo extra  ⏳: ¡Añade +10s al temporizador!</li>
+            <li>Doble Oportunidad ✨: Te permite un segundo intento si fallas. ⚠️ -10s de penalidad.</li>
+            <li>Pregunta al Oráculo 🔮: Revela un acertijo para ayudarte. ⚠️ -15s de penalidad.</li>
+            <li>Ayuda del Público 🗳️: El tiempo restante se fija en 10s (es el tiempo que te queda).</li>
+        </ul>
+      </li>
+    </ul>
+    <button class="btn" onclick="nextSlide()">Comenzar Quiz</button>
+  </section>
+
+  <section class="slide quiz-slide" id="quiz1">
+    <div class="millionaire-container">
+      
+      <div class="quiz-header-layout">
+          <div class="timer-container">
+            <svg class="timer-svg" viewBox="0 0 80 80"><circle class="timer-circle timer-background" cx="40" cy="40" r="36"/><circle class="timer-circle timer-progress" cx="40" cy="40" r="36"/></svg>
+            <div class="timer-text">30</div>
+          </div>
+      </div>
+      
+      <div class="question-box">Pregunta 1/5: ¿Qué concepto fundamental define la Ley Cero?</div>
+      
+      <div class="lifeline-container">
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'5050')">50/50</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'time_boost')">Tiempo extra  ⏳</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'double_chance')">Doble Oportunidad ✨</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'oracle')">Oráculo 🔮</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'audience')">Público 🗳️</button>
+      </div>
+          
+      <div class="answer-grid">
+        <div class="answer-option" onclick="checkAnswer(1, 1, this)"><span class="answer-letter">A:</span><span class="answer-text">Entropía</span></div>
+        <div class="answer-option" onclick="checkAnswer(1, 2, this)"><span class="answer-letter">B:</span><span class="answer-text">Temperatura</span></div>
+        <div class="answer-option" onclick="checkAnswer(1, 3, this)"><span class="answer-letter">C:</span><span class="answer-text">Energía Cinética</span></div>
+        <div class="answer-option" onclick="checkAnswer(1, 4, this)"><span class="answer-letter">D:</span><span class="answer-text">Trabajo Mecánico</span></div>
+      </div>
+      <div class="quizResult"></div>
+    </div>
+    <div><button class="btn" onclick="prevSlide()">Atrás</button><button class="btn" onclick="nextSlide()">Siguiente</button></div>
+  </section>
+  <section class="slide quiz-slide" id="quiz2">
+    <div class="millionaire-container">
+      
+      <div class="quiz-header-layout">
+           <div class="timer-container">
+            <svg class="timer-svg" viewBox="0 0 80 80"><circle class="timer-circle timer-background" cx="40" cy="40" r="36"/><circle class="timer-circle timer-progress" cx="40" cy="40" r="36"/></svg>
+            <div class="timer-text">30</div>
+          </div>
+      </div>
+      
+      <div class="question-box">Pregunta 2/5: La Segunda Ley describe un proceso que es...</div>
+      
+      <div class="lifeline-container">
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'5050')">50/50</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'time_boost')">Tiempo extra  ⏳</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'double_chance')">Doble Oportunidad ✨</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'oracle')">Oráculo 🔮</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'audience')">Público 🗳️</button>
+      </div>
+
+      <div class="answer-grid">
+        <div class="answer-option" onclick="checkAnswer(2, 1, this)"><span class="answer-letter">A:</span><span class="answer-text">Reversible</span></div>
+        <div class="answer-option" onclick="checkAnswer(2, 2, this)"><span class="answer-letter">B:</span><span class="answer-text">Constante</span></div>
+        <div class="answer-option" onclick="checkAnswer(2, 3, this)"><span class="answer-letter">C:</span><span class="answer-text">Irreversible</span></div>
+        <div class="answer-option" onclick="checkAnswer(2, 4, this)"><span class="answer-letter">D:</span><span class="answer-text">Aislado</span></div>
+      </div>
+      <div class="quizResult"></div>
+    </div>
+    <div><button class="btn" onclick="prevSlide()">Atrás</button><button class="btn" onclick="nextSlide()">Siguiente</button></div>
+  </section>
+  <section class="slide quiz-slide" id="quiz3">
+    <div class="millionaire-container">
+      
+      <div class="quiz-header-layout">
+           <div class="timer-container">
+            <svg class="timer-svg" viewBox="0 0 80 80"><circle class="timer-circle timer-background" cx="40" cy="40" r="36"/><circle class="timer-circle timer-progress" cx="40" cy="40" r="36"/></svg>
+            <div class="timer-text">30</div>
+          </div>
+      </div>
+    <div class="question-box">Pregunta 3/5: ¿Qué ley establece que la energía se conserva?</div>
+        
+      <div class="lifeline-container">
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'5050')">50/50</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'time_boost')">Tiempo extra  ⏳</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'double_chance')">Doble Oportunidad ✨</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'oracle')">Oráculo 🔮</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'audience')">Público 🗳️</button>
+      </div>
+
+      <div class="answer-grid">
+          <div class="answer-option" onclick="checkAnswer(3, 1, this)"><span class="answer-letter">A:</span><span class="answer-text">Primera Ley</span></div>
+          <div class="answer-option" onclick="checkAnswer(3, 2, this)"><span class="answer-letter">B:</span><span class="answer-text">Segunda Ley</span></div>
+          <div class="answer-option" onclick="checkAnswer(3, 3, this)"><span class="answer-letter">C:</span><span class="answer-text">Tercera Ley</span></div>
+          <div class="answer-option" onclick="checkAnswer(3, 4, this)"><span class="answer-letter">D:</span><span class="answer-text">Ley Cero</span></div>
+        </div>
+      <div class="quizResult"></div>
+    </div>
+    <div><button class="btn" onclick="prevSlide()">Atrás</button><button class="btn" onclick="nextSlide()">Siguiente</button></div>
+  </section>
+  <section class="slide quiz-slide" id="quiz4">
+    <div class="millionaire-container">
+      
+      <div class="quiz-header-layout">
+           <div class="timer-container">
+            <svg class="timer-svg" viewBox="0 0 80 80"><circle class="timer-circle timer-background" cx="40" cy="40" r="36"/><circle class="timer-circle timer-progress" cx="40" cy="40" r="36"/></svg>
+            <div class="timer-text">30</div>
+          </div>
+      </div>
+      <div class="question-box">Pregunta 4/5: ¿Qué condición se considera imposible de alcanzar según la Tercera Ley?</div>
+        
+      <div class="lifeline-container">
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'5050')">50/50</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'time_boost')">Tiempo extra  ⏳</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'double_chance')">Doble Oportunidad ✨</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'oracle')">Oráculo 🔮</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'audience')">Público 🗳️</button>
+      </div>
+
+      <div class="answer-grid">
+          <div class="answer-option" onclick="checkAnswer(4, 1, this)"><span class="answer-letter">A:</span><span class="answer-text">Cero Grados Celsius</span></div>
+          <div class="answer-option" onclick="checkAnswer(4, 2, this)"><span class="answer-letter">B:</span><span class="answer-text">El Equilibrio Químico</span></div>
+          <div class="answer-option" onclick="checkAnswer(4, 3, this)"><span class="answer-letter">C:</span><span class="answer-text">Cero Absoluto</span></div>
+          <div class="answer-option" onclick="checkAnswer(4, 4, this)"><span class="answer-letter">D:</span><span class="answer-text">Máxima Entropía</span></div>
+        </div>
+      <div class="quizResult"></div>
+    </div>
+    <div><button class="btn" onclick="prevSlide()">Atrás</button><button class="btn" onclick="nextSlide()">Siguiente</button></div>
+  </section>
+  <section class="slide quiz-slide" id="quiz5">
+    <div class="millionaire-container">
+      
+      <div class="quiz-header-layout">
+           <div class="timer-container">
+            <svg class="timer-svg" viewBox="0 0 80 80"><circle class="timer-circle timer-background" cx="40" cy="40" r="36"/><circle class="timer-circle timer-progress" cx="40" cy="40" r="36"/></svg>
+            <div class="timer-text">30</div>
+          </div>
+      </div>
+        <div class="question-box">Pregunta 5/5: ¿Cuál es el concepto central de la Segunda Ley?</div>
+        
+      <div class="lifeline-container">
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'5050')">50/50</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'time_boost')">Tiempo extra  ⏳</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'double_chance')">Doble Oportunidad ✨</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'oracle')">Oráculo 🔮</button>
+        <button class="btn lifeline" data-used="false" onclick="useLifeline(this,'audience')">Público 🗳️</button>
+      </div>
+
+      <div class="answer-grid">
+          <div class="answer-option" onclick="checkAnswer(5, 1, this)"><span class="answer-letter">A:</span><span class="answer-text">Conservación de la masa</span></div>
+          <div class="answer-option" onclick="checkAnswer(5, 2, this)"><span class="answer-letter">B:</span><span class="answer-text">Trabajo mecánico</span></div>
+          <div class="answer-option" onclick="checkAnswer(5, 3, this)"><span class="answer-letter">C:</span><span class="answer-text">Entropía</span></div>
+          <div class="answer-option" onclick="checkAnswer(5, 4, this)"><span class="answer-letter">D:</span><span class="answer-text">Equilibrio térmico</span></div>
+        </div>
+      <div class="quizResult"></div>
+    </div>
+    <div><button class="btn" onclick="prevSlide()">Atrás</button>
+      
+      <button class="btn" onclick="goToSlide(0)">Reiniciar</button></section>
+    </div>
+      
+  </section>
+  
+  <nav class="interactive-nav" id="interactive-nav">
+      </nav>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const navBar = document.getElementById('interactive-nav');
+    const lifelineModal = document.getElementById('lifelineModal');
+
+    // Estado global para las respuestas correctas
+    const quizAnswers = { 
+        1: 2, // Pregunta 1: Ley Cero -> Temperatura (B)
+        2: 3, // Pregunta 2: Segunda Ley -> Irreversible (C)
+        3: 1, // Pregunta 3: Energía se conserva -> Primera Ley (A)
+        4: 3, // Pregunta 4: Imposible de alcanzar -> Cero Absoluto (C)
+        5: 3  // Pregunta 5: Concepto central de la Segunda Ley -> Entropía (C)
+    }; 
+    
+    // EXPLICACIONES
+    const quizExplanations = {
+        1: "La Ley Cero de la Termodinámica establece que si dos sistemas están en equilibrio térmico con un tercer sistema, deben estar en equilibrio térmico entre sí. Esto define el concepto de temperatura como la propiedad que determina dicho equilibrio.",
+        2: "La Segunda Ley de la Termodinámica afirma que la entropía del universo siempre aumenta, lo que significa que todos los procesos naturales tienden hacia un estado de mayor desorden y son, por naturaleza, irreversibles.",
+        3: "La Primera Ley de la Termodinámica es esencialmente el principio de conservación de la energía, que establece que la energía no puede crearse ni destruirse, solo transformarse (trabajo, calor, energía interna).",
+        4: "La Tercera Ley establece que la entropía de un cristal perfecto es cero en el cero absoluto (0 Kelvin o -273.15°C), y es una temperatura que es imposible de alcanzar experimentalmente en un número finito de pasos.",
+        5: "La Segunda Ley se define por el concepto de Entropía, que mide el grado de desorden de un sistema y establece que esta siempre tiende a aumentar en un sistema aislado."
+    };
+    
+    // ACERTIJOS PARA EL ORÁCULO (MODIFICADO)
+    const quizOracles = {
+        1: "Busca la propiedad que permite decir que si A=C y B=C, entonces A=B. Es la base para medir el calor.", // Pista para: Temperatura
+        2: "Soy el camino de un vaso roto, nunca al revés. Indico que el desorden en el cosmos siempre crece. ¿Quién soy?", // Pista para: Irreversible
+        3: "Mi regla es la 'No Destrucción', el cambio de formas es mi vocación. Soy el primer gran mandamiento del calor. ¿Qué ley soy?", // Pista para: Primera Ley
+        4: "Soy la frontera inalcanzable, la quietud total de la partícula. Mi valor es -273.15°C o 0 K. ¿Qué temperatura intento ser?", // Pista para: Cero Absoluto
+        5: "Soy la medida del caos, el destino final de un sistema cerrado. Mi aumento es el corazón de la Segunda Ley. ¿Qué concepto represento?", // Pista para: Entropía
+    };
+
+    // EJEMPLOS PARA LAS LEYES
+    const examples = {
+        0: {
+            real: "Si colocas dos tazas de café a la misma temperatura en contacto, no hay transferencia de calor entre ellas, ya que están en equilibrio térmico. Esto ilustra cómo la Ley Cero define la temperatura.",
+            cs: "En un sistema de balanceo de carga en servidores, nodos con la misma carga de trabajo están en equilibrio, sin necesidad de redistribuir tareas automáticamente. Esto es análogo al equilibrio térmico en termodinámica."
+        },
+        1: {
+            real: "La energía química almacenada en la gasolina de un automóvil se transforma en energía cinética para mover el vehículo y calor disipado, pero la cantidad total de energía se conserva. Esto demuestra la Primera Ley.",
+            cs: "En un procesador de computadora, la energía eléctrica se convierte en señales digitales para realizar cálculos y calor generado por el chip, conservando la energía total según la Primera Ley."
+        },
+        2: {
+            real: "Un vaso roto en el suelo no se reensambla espontáneamente; el desorden (entropía) del sistema aumenta, lo que explica por qué los procesos naturales son irreversibles según la Segunda Ley.",
+            cs: "En algoritmos de búsqueda en bases de datos desordenadas, la entropía mide el grado de desorden, y la Segunda Ley indica que ordenar datos requiere energía, aumentando la entropía total del sistema."
+        },
+        3: {
+            real: "Es físicamente imposible enfriar cualquier sustancia a exactamente 0 Kelvin (-273.15°C), ya que se requeriría un proceso infinito de enfriamiento. Esto es la Tercera Ley.",
+            cs: "En computación cuántica, el cero absoluto representa el límite teórico para eliminar el ruido térmico en qubits, pero es inalcanzable, limitando la precisión de los cálculos cuánticos."
+        }
+    };
+
+
+    // 5 COMODINES DE USO ÚNICO PARA TODO EL QUIZ
+    const LIFELINES_USED = { 
+        '5050': false,
+        'time_boost': false, 
+        'double_chance': false, 
+        'oracle': false, 
+        'audience': false 
+    };
+
+    // Variable para rastrear el uso de Doble Oportunidad en la pregunta actual
+    let canTryAgain = false; 
+    let audioReady = false;
+    let timerInterval = null;
+    let timeLeftGlobal = 30; 
+
+    // Constantes de tiempo
+    const CIRCUMFERENCE = 226;
+    const TOTAL_TIME = 30;
+    
+    // Penalidades y bonificaciones de tiempo
+    const PENALTY_5050 = 5; 
+    const BONUS_TIME_BOOST = 10;
+    const PENALTY_DOUBLE_CHANCE = 10; 
+    const PENALTY_ORACLE = 15; 
+
+    // Tiempos de duración de los modales
+    const MODAL_TIME_5050 = 2; 
+    const MODAL_TIME_ORACLE = PENALTY_ORACLE; // Tiempo de penalidad es el tiempo para leer el acertijo
+    const MODAL_TIME_AUDIENCE = 15; // Tiempo para pensar después de fijar el temporizador
+    const FIXED_TIME_AUDIENCE = 10; // Tiempo restante que queda si se usa Ayuda del Público
+
+    // --- LÓGICA DE SONIDO ---
+    const synth = new Tone.FMSynth().toDestination();
+    const timerSfx = document.getElementById('timerSound');
+    
+    document.body.addEventListener('click', async () => {
+        if (!audioReady) {
+            await Tone.start();
+            audioReady = true;
+        }
+    }, { once: true });
+
+    function playCorrectSound() { synth.triggerAttackRelease("C5", "8n", Tone.now()); }
+    function playWrongSound() { synth.triggerAttackRelease("F#2", "2n", Tone.now()); }
+
+    // --- LÓGICA DEL TEMPORIZADOR ---
+    function updateTimerDisplay(slideElement) {
+        if (!slideElement) return;
+
+        const timerText = slideElement.querySelector('.timer-text');
+        const progressCircle = slideElement.querySelector('.timer-progress');
+        
+        timeLeftGlobal = Math.max(0, timeLeftGlobal); // Asegurar que no sea negativo
+        timerText.textContent = Math.ceil(timeLeftGlobal);
+        
+        // La barra de progreso se calcula en base a 30s
+        const offset = CIRCUMFERENCE * (1 - (timeLeftGlobal / TOTAL_TIME));
+        progressCircle.style.strokeDashoffset = offset;
+
+        if (timeLeftGlobal <= 0) {
+            if (timerInterval) clearInterval(timerInterval);
+            timerSfx.pause();
+            timeUp(slideElement);
+        }
+    }
+
+    function startTimer(slideElement) {
+        if (timerInterval) clearInterval(timerInterval);
+        timerSfx.pause();
+        
+        if (slideElement && slideElement.classList.contains('quiz-slide') && (slideElement.dataset.visited === 'true' && timeLeftGlobal < 1)) { 
+             timeLeftGlobal = TOTAL_TIME; // Reinicia si el tiempo se agotó en el intento anterior
+        }
+
+        if (timeLeftGlobal > 0) {
+            updateTimerDisplay(slideElement);
+
+            timerSfx.currentTime = 0;
+            timerSfx.loop = true;
+            timerSfx.play().catch(e => {
+                console.error("Error al reproducir audio del temporizador:", e);
+            });
+
+            timerInterval = setInterval(() => {
+                timeLeftGlobal = Math.max(0, timeLeftGlobal - 0.1); 
+                updateTimerDisplay(slideElement);
+                
+                if (timeLeftGlobal <= 0) {
+                    clearInterval(timerInterval);
+                }
+            }, 100);
+        }
+    }
+
+    function stopTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timerSfx.pause();
+    }
+
+    function timeUp(slideElement) {
+        const resultDiv = slideElement.querySelector('.quizResult');
+        resultDiv.textContent = "¡Tiempo agotado! ⏳";
+        resultDiv.style.color = 'var(--quiz-incorrect)';
+        slideElement.querySelectorAll('.answer-option').forEach(opt => opt.classList.add('incorrect', 'disabled'));
+        playWrongSound();
+        
+        const questionNum = currentSlide - 7; // Ajuste del índice de la diapositiva para el número de pregunta
+        showExplanationModal(questionNum);
+    }
+
+    // --- LÓGICA DE EXPLICACIÓN Y AVANCE CONTROLADO ---
+    function getCorrectAnswerLetter(questionNum) {
+        const correctAnswerIndex = quizAnswers[questionNum];
+        // Ojo: currentSlide es el índice del array de slides, que va de 0 a 12. Los slides del quiz son del 8 al 12.
+        const slideIndex = currentSlide; 
+        const answerText = slides[slideIndex].querySelectorAll('.answer-option')[correctAnswerIndex - 1].querySelector('.answer-text').textContent;
+        const letter = String.fromCharCode(64 + correctAnswerIndex); 
+        return { letter: letter, text: answerText };
+    }
+
+    function closeExplanationModalAndAdvance() {
+        lifelineModal.classList.remove('active');
+        canTryAgain = false; // Desactiva Doble Oportunidad al pasar de pregunta
+        nextSlide(); 
+    }
+
+    function showExplanationModal(questionNum) {
+        const title = "Explicación de la Pregunta " + questionNum;
+        const explanation = quizExplanations[questionNum];
+        const { letter, text } = getCorrectAnswerLetter(questionNum);
+
+        lifelineModal.innerHTML = `
+            <div class="modal-content">
+              <h3>${title}</h3>
+              <p class="modal-explanation-correct-answer">La respuesta correcta es la ${letter}: ${text}.</p>
+              <p>${explanation}</p>
+              <button class="close-btn" onclick="closeExplanationModalAndAdvance()">Continuar</button>
+            </div>
+        `;
+        lifelineModal.classList.add('active');
+    }
+
+    function closeModal() {
+        lifelineModal.classList.remove('active');
+    }
+
+    function showExamplesModal(ley) {
+        const ex = examples[ley];
+        const leyName = ley === 0 ? 'Cero' : ley;
+        lifelineModal.innerHTML = `
+            <div class="modal-content">
+                <h3>Ejemplos de la Ley ${leyName}</h3>
+                <h4 style="color: var(--quiz-gold);">Vida Real:</h4>
+                <p>${ex.real}</p>
+                <h4 style="color: var(--quiz-gold);">Ingeniería Informática:</h4>
+                <p>${ex.cs}</p>
+                <button class="close-btn" onclick="closeModal()">Cerrar</button>
+            </div>
+        `;
+        lifelineModal.classList.add('active');
+    }
+    
+    // --- LÓGICA DEL QUIZ ---
+    function checkAnswer(questionNum, selectedOption, element) {
+      if (!element || element.classList.contains('disabled')) return;
+      stopTimer();
+
+      const isCorrect = (selectedOption === quizAnswers[questionNum]);
+      const resultDiv = element.closest('.millionaire-container').querySelector('.quizResult');
+      const allOptions = element.closest('.answer-grid').querySelectorAll('.answer-option');
+
+      element.classList.add('selected');
+
+      setTimeout(() => {
+        element.classList.remove('selected');
+        
+        if (isCorrect) {
+          // RESPUESTA CORRECTA
+          element.classList.add('correct');
+          resultDiv.textContent = "¡Respuesta Correcta! ✅";
+          resultDiv.style.color = 'var(--quiz-correct)';
+          playCorrectSound();
+          allOptions.forEach(opt => opt.classList.add('disabled'));
+          
+          // Pasa el control al modal de explicación
+          setTimeout(() => showExplanationModal(questionNum), 1500); // 1.5s delay
+
+        } else {
+          // RESPUESTA INCORRECTA
+          element.classList.add('incorrect');
+          
+          if (canTryAgain) {
+            // USANDO DOBLE OPORTUNIDAD
+            resultDiv.textContent = "¡Incorrecto! Te queda una oportunidad. ✨";
+            resultDiv.style.color = 'var(--quiz-pending)';
+            playWrongSound();
+            canTryAgain = false; // El segundo intento es el último
+            element.classList.add('disabled'); // Deshabilita la opción fallida
+            
+            // Reactiva las otras opciones y el timer
+            allOptions.forEach(opt => {
+                if (!opt.classList.contains('disabled')) {
+                    opt.classList.remove('incorrect', 'selected');
+                }
+            });
+            
+            // Quita el estado visual de doble oportunidad del slide
+            slides[currentSlide].querySelector('.question-box').classList.remove('double-chance-active');
+            
+            // Reanuda el temporizador
+            setTimeout(() => startTimer(slides[currentSlide]), 500); // Pequeño delay para UX
+
+          } else {
+            // FIN DEL JUEGO PARA ESTA PREGUNTA
+            resultDiv.textContent = "Respuesta Incorrecta. ❌";
+            resultDiv.style.color = 'var(--quiz-incorrect)';
+
+            // Marcar la respuesta correcta en verde
+            allOptions.forEach((opt, i) => {
+                if (i === quizAnswers[questionNum] - 1) {
+                    opt.classList.add('correct');
+                }
+            });
+            playWrongSound();
+            allOptions.forEach(opt => opt.classList.add('disabled'));
+
+            // Pasa el control al modal de explicación
+            setTimeout(() => showExplanationModal(questionNum), 1500); // 1.5s delay
+          }
+        }
+      }, 1500); 
+    }
+    
+    // --- LÓGICA DE COMODINES ---
+    function showLifelineModal(title, msg, time, callback = () => {}) {
+        lifelineModal.innerHTML = `
+            <div class="modal-content">
+              <h3>${title}</h3>
+              ${msg}
+              <div class="timer-msg">Reanudando en: <span id="modalTime">${time}</span>s</div>
+            </div>
+        `;
+        lifelineModal.classList.add('active');
+        
+        let t = time;
+        const int = setInterval(() => {
+            t--;
+            const mt = lifelineModal.querySelector('#modalTime');
+            if (mt) { mt.textContent = t; }
+
+            if (t <= 0) {
+              clearInterval(int);
+              lifelineModal.classList.remove('active');
+              callback(); // Ejecuta el callback al cerrar el modal
+            }
+        }, 1000);
+    }
+
+    function useLifeline(btn, type) {
+        const slideElement = slides[currentSlide];
+        const questionNum = currentSlide - 7; // Ajuste del índice de la diapositiva para el número de pregunta
+        const correctAnswerIndex = quizAnswers[questionNum]; 
+        const options = slideElement.querySelectorAll('.answer-option');
+
+        if (LIFELINES_USED[type] || !slideElement.classList.contains('quiz-slide')) return;
+        
+        LIFELINES_USED[type] = true;
+        document.querySelectorAll(`.lifeline[onclick*='${type}']`).forEach(b => {
+            b.classList.add('used');
+        });
+
+        stopTimer(); 
+        
+        let modalTitle = '';
+        let modalMessage = '';
+        let modalTime = 0;
+        let callback = () => startTimer(slideElement); // Por defecto, reanuda el timer
+
+        if (type === '5050') {
+            modalTitle = 'Comodín 50/50 ✂️';
+            // Penalidad de 5 segundos
+            timeLeftGlobal = Math.max(1, timeLeftGlobal - PENALTY_5050); 
+            modalMessage = `<p>Dos respuestas incorrectas han sido eliminadas. Te quedan ${Math.ceil(timeLeftGlobal)}s.</p>`;
+            modalTime = MODAL_TIME_5050;
+            
+            let incorrects = [];
+            options.forEach((o, i) => {
+                if (i !== correctAnswerIndex - 1) { 
+                    incorrects.push(o);
+                }
+            });
+            
+            // Elimina dos opciones incorrectas al azar
+            incorrects.sort(() => 0.5 - Math.random());
+            incorrects.slice(0, 2).forEach(o => {
+                o.classList.add('disabled');
+            });
+            
+        } else if (type === 'time_boost') {
+            modalTitle = 'Tiempo extra  ⏳';
+            // Bonificación de 10 segundos
+            timeLeftGlobal = Math.min(TOTAL_TIME, timeLeftGlobal + BONUS_TIME_BOOST);
+            modalMessage = `<p>¡Tu energía se recarga! Se han añadido ${BONUS_TIME_BOOST} segundos al temporizador. Tiempo restante: ${Math.ceil(timeLeftGlobal)}s.</p>`;
+            modalTime = MODAL_TIME_5050; // Usar el tiempo corto del modal
+
+        } else if (type === 'double_chance') {
+            modalTitle = 'Doble Oportunidad ✨';
+            // Penalidad de 10 segundos
+            timeLeftGlobal = Math.max(1, timeLeftGlobal - PENALTY_DOUBLE_CHANCE);
+            modalMessage = `<p>Tienes un intento adicional si fallas la primera vez. ¡Pero cuidado! Pierdes ${PENALTY_DOUBLE_CHANCE} segundos. Tiempo restante: ${Math.ceil(timeLeftGlobal)}s.</p>`;
+            modalTime = MODAL_TIME_5050;
+
+            canTryAgain = true;
+            slideElement.querySelector('.question-box').classList.add('double-chance-active');
+
+        } else if (type === 'oracle') {
+            modalTitle = 'Pregunta al Oráculo 🔮';
+            // Penalidad de 7 segundos
+            timeLeftGlobal = Math.max(1, timeLeftGlobal - PENALTY_ORACLE);
+            const oracleAcertijo = quizOracles[questionNum];
+            modalMessage = `
+                <p>El Oráculo te da una pista para reflexionar:</p>
+                <div class="oracle-answer">${oracleAcertijo}</div>
+                <p>Medita tu respuesta. Pierdes ${PENALTY_ORACLE} segundos. Tiempo restante: ${Math.ceil(timeLeftGlobal)}s.</p>
+            `;
+            modalTime = MODAL_TIME_ORACLE; 
+            
+        } else if (type === 'audience') {
+            modalTitle = 'Ayuda del Público 🗳️';
+            // El tiempo se fija en 10 segundos exactos 
+            timeLeftGlobal = FIXED_TIME_AUDIENCE;
+            modalMessage = `<p>El tiempo restante se ha fijado en 10 segundos (independientemente de lo que te quedara). Úsalo para repasar tu respuesta final. El temporizador reinicia en:</p>`;
+            modalTime = MODAL_TIME_AUDIENCE;
+        }
+
+        updateTimerDisplay(slideElement); 
+        showLifelineModal(modalTitle, modalMessage, modalTime, callback);
+    }
+    
+    // --- NAVEGACIÓN DE DIAPOSITIVAS ---
+    function showSlide(index) {
+      stopTimer(); 
+      
+      slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
+      currentSlide = index;
+
+      // Lógica para mostrar/ocultar barra de navegación (solo índices de quiz y finales)
+      if (index >= 9 && index <= 12) { // Rango incorrecto. Quiz slides: 8 (quiz1) a 12 (quiz5)
+          // El rango de diapositivas del quiz va de 8 a 12 (quiz1 a quiz5).
+          navBar.style.bottom = '0';
+      } else {
+          navBar.style.bottom = '-100px';
+      }
+
+      // Lógica específica para slides de quiz (índices 8 a 12)
+      if (index >= 8 && index <= 12) {
+          const slideElement = slides[index];
+          // Reiniciar el tiempo a 30 segundos si es una nueva pregunta 
+          if (slideElement.dataset.visited !== 'true' || timeLeftGlobal < 1) {
+             timeLeftGlobal = TOTAL_TIME; // Reinicia a 30s por cada pregunta nueva
+             slideElement.dataset.visited = 'true';
+             
+             // Limpia el estado de los comodines en la pregunta si no es la primera vez
+             slideElement.querySelector('.question-box').classList.remove('double-chance-active');
+             slideElement.querySelectorAll('.answer-option').forEach(opt => {
+                opt.classList.remove('disabled', 'correct', 'incorrect', 'selected');
+             });
+             slideElement.querySelector('.quizResult').textContent = '';
+
+          }
+          canTryAgain = false; // Asegura que Doble Oportunidad esté desactivado por defecto en la nueva pregunta.
+          startTimer(slideElement);
+          document.getElementById('questionSound').play().catch(e => console.log('No se pudo reproducir el audio de pregunta'));
+      }
+    }
+
+    function nextSlide() {
+      if (currentSlide < slides.length - 1) {
+        showSlide(currentSlide + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        showSlide(currentSlide - 1);
+      }
+    }
+
+    function goToSlide(index) {
+        if (index >= 8 && index <= 12) {
+           // Forzar reinicio de tiempo y estado al ir directamente a un quiz
+           timeLeftGlobal = TOTAL_TIME;
+           slides[index].dataset.visited = 'true';
+        }
+        showSlide(index);
+    }
+    
+    // Inicializar escena Three.js para el fondo
+    alert('Script loaded');
+    console.log('Script loaded');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x04020e); // pitch-black con tinte dark indigo
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0, 10);
+    camera.lookAt(0, 0, 0);
+    console.log('Canvas found:', !!document.getElementById('bg-canvas'));
+    const canvas = document.getElementById('bg-canvas');
+    console.log('Canvas element:', canvas);
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: false });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    console.log('Three.js initialized, context:', renderer.getContext());
+
+
+    // Partículas blancas dispersas (estrellas) que se mueven hacia el centro
+    const particleCount = 1000;
+    const particlesGeometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const velocities = new Float32Array(particleCount * 3);
+    for (let i = 0; i < particleCount; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 100;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 100;
+      positions[i * 3 + 2] = -5 - Math.random() * 15; // de -5 a -20
+      // Velocidad hacia el centro (0,0,0)
+      const length = Math.sqrt(positions[i * 3]**2 + positions[i * 3 + 1]**2 + positions[i * 3 + 2]**2);
+      velocities[i * 3] = -positions[i * 3] / length * 0.02;
+      velocities[i * 3 + 1] = -positions[i * 3 + 1] / length * 0.02;
+      velocities[i * 3 + 2] = -positions[i * 3 + 2] / length * 0.02;
+    }
+    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const particlesMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 2, transparent: true, opacity: 1, sizeAttenuation: false });
+    const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+    scene.add(particles);
+
+    // Textura de ruido digital
+    const noiseCanvas = document.createElement('canvas');
+    noiseCanvas.width = 512;
+    noiseCanvas.height = 512;
+    const noiseCtx = noiseCanvas.getContext('2d');
+    const imageData = noiseCtx.createImageData(512, 512);
+    for (let i = 0; i < imageData.data.length; i += 4) {
+      const noise = Math.random() * 255;
+      imageData.data[i] = noise;     // R
+      imageData.data[i + 1] = noise; // G
+      imageData.data[i + 2] = noise; // B
+      imageData.data[i + 3] = 10;    // A (muy sutil)
+    }
+    noiseCtx.putImageData(imageData, 0, 0);
+    const noiseTexture = new THREE.CanvasTexture(noiseCanvas);
+    const noiseMaterial = new THREE.MeshBasicMaterial({ map: noiseTexture, transparent: true, opacity: 0.05 });
+    const noisePlane = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), noiseMaterial);
+    noisePlane.position.z = -30;
+    scene.add(noisePlane);
+
+    // Animación
+    function animate() {
+      requestAnimationFrame(animate);
+      // Mover partículas hacia el centro
+      const pos = particlesGeometry.attributes.position.array;
+      for (let i = 0; i < particleCount; i++) {
+        pos[i * 3] += velocities[i * 3];
+        pos[i * 3 + 1] += velocities[i * 3 + 1];
+        pos[i * 3 + 2] += velocities[i * 3 + 2];
+        // Reiniciar si están cerca del centro (desaparecen)
+        const dist = Math.sqrt(pos[i * 3]**2 + pos[i * 3 + 1]**2 + pos[i * 3 + 2]**2);
+        if (dist < 5) {
+          pos[i * 3] = (Math.random() - 0.5) * 200;
+          pos[i * 3 + 1] = (Math.random() - 0.5) * 200;
+          pos[i * 3 + 2] = -10 - Math.random() * 190;
+          // Recalcular velocidad hacia centro
+          const length = Math.sqrt(pos[i * 3]**2 + pos[i * 3 + 1]**2 + pos[i * 3 + 2]**2);
+          velocities[i * 3] = -pos[i * 3] / length * 0.02;
+          velocities[i * 3 + 1] = -pos[i * 3 + 1] / length * 0.02;
+          velocities[i * 3 + 2] = -pos[i * 3 + 2] / length * 0.02;
+        }
+      }
+      particlesGeometry.attributes.position.needsUpdate = true;
+      // Rotar textura de ruido
+      noisePlane.rotation.z += 0.0002;
+      try {
+        renderer.render(scene, camera);
+      } catch(e) {
+        console.log('Render error:', e);
+      }
+    }
+    animate();
+
+    // Manejar redimensionamiento
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Inicializar
+    document.addEventListener("DOMContentLoaded", () => {
+        showSlide(0);
+    });
+
+    // Control de teclado (opcional)
+    document.addEventListener('keydown', (e) => {
+      // Si hay un modal activo, solo permitir avanzar con la tecla 'Enter' o 'Espacio' si es el modal de explicación
+      if (lifelineModal.classList.contains('active')) {
+          // Si el modal es de explicación, o tiene un botón de cerrar
+          if ((e.key === 'Enter' || e.key === ' ') && lifelineModal.querySelector('.close-btn')) {
+              closeExplanationModalAndAdvance();
+              e.preventDefault();
+          }
+          // Si el modal es de comodín (no tiene close-btn), debe esperar el temporizador
+          return;
+      }
+
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft') {
+        prevSlide();
+      }
+    });
+
+  </script>
+</body>
+</html>
